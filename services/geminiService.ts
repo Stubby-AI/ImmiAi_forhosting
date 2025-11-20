@@ -80,7 +80,11 @@ export const analyzeProfile = async (
 
   const systemPrompt = `
     You are an expert Canadian Immigration Consultant AI. 
-    Analyze the provided user profile and determine their eligibility for various Canadian immigration pathways (Express Entry, PNP, Study Permit, etc.).
+    Analyze the provided user profile and determine their eligibility for various Canadian immigration pathways (Express Entry, PNP, Study Permit, Atlantic Immigration Program, Start-up Visa, etc.).
+    
+    1. Identify the "Recommended Pathways" (top 1-2 choices).
+    2. Identify "Other Pathways" that were evaluated but might have lower scores or are alternatives.
+    
     Be realistic but encouraging. 
     If the user is a Student, focus on Study Permit approval odds and PGWP pathways.
     If the user is a Worker, focus on Express Entry CRS scores and PNP eligibility.
@@ -134,9 +138,22 @@ export const analyzeProfile = async (
                   description: { type: Type.STRING },
                   eligibilityScore: { type: Type.NUMBER },
                   timeline: { type: Type.STRING },
-                  type: { type: Type.STRING, enum: ["Federal", "Provincial", "Study"] },
+                  type: { type: Type.STRING, enum: ["Federal", "Provincial", "Study", "Business", "Family"] },
                 },
               },
+            },
+            otherPathways: {
+               type: Type.ARRAY,
+               items: {
+                 type: Type.OBJECT,
+                 properties: {
+                   name: { type: Type.STRING },
+                   description: { type: Type.STRING },
+                   eligibilityScore: { type: Type.NUMBER },
+                   timeline: { type: Type.STRING },
+                   type: { type: Type.STRING, enum: ["Federal", "Provincial", "Study", "Business", "Family"] },
+                 },
+               },
             },
             strategicAdvice: {
               type: Type.STRING,
@@ -160,6 +177,7 @@ export const analyzeProfile = async (
             "riskFactors",
             "strengths",
             "recommendedPathways",
+            "otherPathways",
             "strategicAdvice",
           ],
         },
@@ -186,6 +204,22 @@ export const analyzeProfile = async (
           timeline: "6-8 Months",
           type: "Federal",
         },
+      ],
+      otherPathways: [
+        {
+            name: "Atlantic Immigration Program",
+            description: "Employer-driven program for Atlantic Canada.",
+            eligibilityScore: 45,
+            timeline: "12 Months",
+            type: "Provincial"
+        },
+        {
+            name: "Start-up Visa Program",
+            description: "For entrepreneurs with a qualifying business idea.",
+            eligibilityScore: 20,
+            timeline: "12-16 Months",
+            type: "Business"
+        }
       ],
       strategicAdvice: "Consider improving your CRS score by learning French or gaining more work experience.",
       studyRecommendations: [],

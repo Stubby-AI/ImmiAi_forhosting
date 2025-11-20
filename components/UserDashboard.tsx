@@ -1,7 +1,7 @@
 import React from 'react';
 import { AIAnalysisResult } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
-import { Check, X, AlertTriangle, GraduationCap, Briefcase, Calendar, TrendingUp } from 'lucide-react';
+import { Check, X, AlertTriangle, GraduationCap, Briefcase, Calendar, TrendingUp, List } from 'lucide-react';
 
 interface UserDashboardProps {
   results: AIAnalysisResult;
@@ -15,6 +15,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookCon
   ];
 
   const COLORS = ['#16a34a', '#f3f4f6'];
+
+  // Combine recommended and other pathways for the detailed list
+  const allPathways = [
+    ...results.recommendedPathways.map(p => ({...p, status: 'Recommended'})),
+    ...(results.otherPathways || []).map(p => ({...p, status: 'Evaluated'}))
+  ].sort((a,b) => b.eligibilityScore - a.eligibilityScore);
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
@@ -104,12 +110,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookCon
             </div>
           </div>
 
-          {/* Pathways */}
+          {/* Recommended Pathways (Top Picks) */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recommended Pathways</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Recommended Pathways</h3>
             <div className="space-y-4">
               {results.recommendedPathways.map((path, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition">
+                <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition bg-red-50 bg-opacity-30">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h4 className="font-bold text-gray-900">{path.name}</h4>
@@ -157,6 +163,44 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookCon
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+
+          {/* Detailed Pathway Assessment (All Pathways) */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <List size={20} className="text-gray-500"/> Detailed Pathway Eligibility Assessment
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">A complete breakdown of all immigration streams evaluated for your profile.</p>
+            <div className="space-y-4">
+                {allPathways.map((path, idx) => (
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition">
+                        <div className="flex-1 mb-2 sm:mb-0">
+                            <div className="flex items-center gap-2">
+                                <h4 className="font-medium text-gray-900">{path.name}</h4>
+                                {path.status === 'Recommended' && (
+                                    <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-medium">Top Pick</span>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{path.type} • {path.timeline}</p>
+                            <p className="text-xs text-gray-600 mt-1">{path.description}</p>
+                        </div>
+                        <div className="w-full sm:w-48">
+                            <div className="flex justify-between text-xs mb-1">
+                                <span className="text-gray-600">Eligibility</span>
+                                <span className={`font-bold ${path.eligibilityScore >= 70 ? 'text-green-600' : path.eligibilityScore >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                    {path.eligibilityScore}%
+                                </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                    className={`h-2 rounded-full ${path.eligibilityScore >= 70 ? 'bg-green-500' : path.eligibilityScore >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} 
+                                    style={{ width: `${path.eligibilityScore}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
           </div>
 

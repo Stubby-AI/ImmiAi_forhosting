@@ -22,7 +22,7 @@ export interface Pathway {
   description: string;
   eligibilityScore: number; // 0-100
   timeline: string;
-  type: 'Federal' | 'Provincial' | 'Study';
+  type: 'Federal' | 'Provincial' | 'Study' | 'Business' | 'Family';
 }
 
 export interface AIAnalysisResult {
@@ -31,6 +31,7 @@ export interface AIAnalysisResult {
   riskFactors: string[];
   strengths: string[];
   recommendedPathways: Pathway[];
+  otherPathways: Pathway[]; // Pathways evaluated but not top recommended
   strategicAdvice: string;
   studyRecommendations?: {
     programName: string;
