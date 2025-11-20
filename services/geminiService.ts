@@ -118,6 +118,14 @@ export const analyzeProfile = async (
         1. Federal Express Entry (CEC, FSWP, FSTP, Category-Based).
         2. PNP Streams (OINP, BC PNP, AAIP, SINP, MPNP, Atlantic).
         3. Pilots (Agri-Food, RNIP, Caregiver).
+      
+      User Specifics:
+      - Immigration Category Preference: ${profile.immigrationCategory}
+      - Has ECA: ${profile.hasEca ? "Yes" : "No"}
+      - French Skills: ${profile.hasFrench ? "Yes" : "No"}
+      - Parents in Canada: ${profile.parentsInCanada ? "Yes" : "No"}
+      - Job Role: ${profile.jobRole}
+      
       Strictly return the top 3 recommended pathways and a list of other pathways evaluated.
       `;
   }
@@ -139,9 +147,9 @@ export const analyzeProfile = async (
     - Current Field: ${profile.fieldOfStudy}
     - Intended Study Field: ${profile.intendedStudyField}
     - Grades/GPA: ${profile.gradesOrGpa || "Not provided"}
-    - Work Experience: ${profile.workExperienceYears} years
+    - Work Experience: ${profile.workExperienceYears} years (Location: ${profile.workExperienceLocation || 'N/A'})
     - Language Results: ${languageInfo}
-    - Savings: $${profile.savings} CAD
+    - Savings: ${profile.savingsExempt ? "Exempt (Job Offer)" : `$${profile.savings} CAD`}
     - Visa History: ${profile.hasVisaHistory ? "Previous Travel to Canada" : "None"}
     - Refusals/Criminal/Medical Issues: ${profile.hasRefusalHistory || profile.hasCriminalRecord || profile.hasMedicalCondition ? "YES (Risk Factor)" : "None"}
     - Preferred Provinces: ${profile.preferredProvinces?.join(', ')}

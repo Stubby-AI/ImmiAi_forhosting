@@ -31,12 +31,17 @@ export interface UserProfile {
   passportValid: boolean;
   maritalStatus: string; // 'Never Married', 'Married', 'Common-Law', 'Divorced', 'Separated', 'Widowed', 'Annulled'
   hasSiblingInCanada: boolean; // Citizen or PR > 18
+  parentsInCanada?: boolean; // New: For PNP family streams
   spouse?: SpouseProfile;
   bringingDependents?: boolean;
+
+  // Immigration Intent (New)
+  immigrationCategory?: string; // 'Express Entry', 'PNP', etc.
 
   // Education
   educationLevel: string;
   hasCanadianEducation: boolean;
+  hasEca?: boolean; // New: Educational Credential Assessment
   canadianEducationLevel?: string;
   gradesOrGpa?: string; // e.g., "75%", "3.5/4.0"
 
@@ -47,18 +52,22 @@ export interface UserProfile {
   
   // Work Experience
   workExperienceYears: number; // Total
+  workExperienceLocation?: 'Inside Canada' | 'Outside Canada' | 'Both'; // New
   canadianWorkExperience: string; // 'None', '1', '2-3', '4-5+'
   foreignWorkExperience: string; // 'None', '1', '2-3', '4-5+'
+  jobRole?: string; // New: For specific occupation targeting
   
   // Language
   englishScore: number; // General Band (Legacy/Fallback)
   languageDetails: LanguageScores;
+  hasFrench?: boolean; // New
   secondLanguageDetails?: LanguageScores;
 
   // Additional Factors
   certificateOfQualification: boolean; // Trade certificate
   targetProvince: string;
   savings: number; // CAD
+  savingsExempt?: boolean; // New: If they have job offer/valid status
   
   // Legal & History
   hasVisaHistory: boolean; // Previous travel/study in Canada
