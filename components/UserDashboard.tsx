@@ -1,15 +1,19 @@
 
-import React from 'react';
-import { AIAnalysisResult } from '../types';
+import React, { useState } from 'react';
+import { AIAnalysisResult, UserProfile } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { Check, AlertTriangle, GraduationCap, TrendingUp, List, CheckCircle2, XCircle, ArrowRight, Sparkles, ArrowRightCircle, Info } from 'lucide-react';
+import { Check, AlertTriangle, GraduationCap, TrendingUp, List, CheckCircle2, XCircle, ArrowRight, Sparkles, ArrowRightCircle, Info, Calendar, ChevronRight } from 'lucide-react';
+import { StudyAdvisingModal } from './StudyAdvisingModal';
 
 interface UserDashboardProps {
   results: AIAnalysisResult;
   onBookConsultation: () => void;
+  userProfile: UserProfile; // Added prop
 }
 
-export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookConsultation }) => {
+export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookConsultation, userProfile }) => {
+  const [showStudyModal, setShowStudyModal] = useState(false);
+
   const scoreData = [
     { name: 'Success', value: results.overallSuccessProbability },
     { name: 'Risk', value: 100 - results.overallSuccessProbability },
@@ -44,184 +48,207 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookCon
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
+      <StudyAdvisingModal 
+        isOpen={showStudyModal} 
+        onClose={() => setShowStudyModal(false)} 
+        userProfile={userProfile}
+      />
+
       {/* Header Section */}
       <div className="mb-8 text-center md:text-left">
         <h1 className="text-3xl font-bold text-gray-900">Your Immigration Assessment</h1>
         <p className="text-gray-600 mt-2">Powered by ImmiPlanner AI Engine</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="space-y-8">
         
-        {/* Left Column: Score & CRS */}
-        <div className="space-y-6">
-          {/* Success Probability Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <TrendingUp className="text-red-600" size={20}/>
-              Visa Approval Probability
-            </h3>
-            <div className="h-48 w-full relative flex justify-center items-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={scoreData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                    startAngle={90}
-                    endAngle={-270}
-                  >
-                    {scoreData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-bold text-gray-900">{results.overallSuccessProbability}%</span>
-                <span className="text-xs text-gray-500">Likelihood</span>
-              </div>
-            </div>
-            <p className="text-sm text-center text-gray-600 mt-2">
-              Based on current Canadian immigration trends and your profile data.
-            </p>
-          </div>
-
-          {/* CRS Prediction Card (Dynamic based on Student vs Worker) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-             <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <List size={18} className="text-blue-600"/>
-                CRS Score Projection
-             </h3>
+        {/* ROW 1: Visa Probability (1), Need Professional Help (2), CRS Score (3) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
              
-             {results.futureCrsPredictions ? (
-                 <div className="space-y-5 mt-4">
-                     {/* Current */}
-                     <div>
-                         <div className="flex justify-between text-sm mb-1">
-                             <span className="font-medium text-gray-500">Current Score (As of Today)</span>
-                             <span className="font-bold text-gray-900">{results.futureCrsPredictions.current}</span>
-                         </div>
-                         <div className="w-full bg-gray-100 rounded-full h-2">
-                             <div className="bg-gray-400 h-2 rounded-full transition-all duration-500" style={{ width: getBarWidth(results.futureCrsPredictions.current) }}></div>
-                         </div>
-                     </div>
-
-                     {/* Option 1 */}
-                     <div>
-                         <div className="flex justify-between text-sm mb-1">
-                             <span className="text-gray-600 text-xs">Option 1: After 1 Year Study</span>
-                             <span className="font-bold text-blue-600">{results.futureCrsPredictions.oneYearStudy}</span>
-                         </div>
-                         <div className="w-full bg-blue-50 rounded-full h-2">
-                             <div className="bg-blue-400 h-2 rounded-full transition-all duration-500" style={{ width: getBarWidth(results.futureCrsPredictions.oneYearStudy) }}></div>
-                         </div>
-                     </div>
-
-                     {/* Option 2 */}
-                     <div>
-                         <div className="flex justify-between text-sm mb-1">
-                             <span className="text-gray-600 text-xs">Option 2: After 2 Years Study</span>
-                             <span className="font-bold text-blue-600">{results.futureCrsPredictions.twoYearStudy}</span>
-                         </div>
-                         <div className="w-full bg-blue-50 rounded-full h-2">
-                             <div className="bg-blue-500 h-2 rounded-full transition-all duration-500" style={{ width: getBarWidth(results.futureCrsPredictions.twoYearStudy) }}></div>
-                         </div>
-                     </div>
-
-                     {/* Option 3 (Highlight) */}
-                     <div className="bg-green-50 p-3 rounded-lg border border-green-100 -mx-2">
-                         <div className="flex justify-between text-sm mb-1">
-                             <span className="font-bold text-green-800 text-xs flex items-center gap-1">
-                                 Option 3: 2 Yr Study + 1 Yr Work <ArrowRight size={12}/>
-                             </span>
-                             <span className="font-extrabold text-green-700 text-lg">{results.futureCrsPredictions.twoYearStudyPlusWork}</span>
-                         </div>
-                         <div className="w-full bg-green-200 rounded-full h-2.5">
-                             <div className="bg-green-600 h-2.5 rounded-full transition-all duration-500" style={{ width: getBarWidth(results.futureCrsPredictions.twoYearStudyPlusWork) }}></div>
-                         </div>
-                         <p className="text-[10px] text-green-700 mt-1 text-right font-medium">Highest PR Probability</p>
-                     </div>
-                 </div>
-             ) : (
-                 /* Fallback / Standard Worker View */
-                 <>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-bold text-blue-600">{results.crsScorePrediction}</span>
-                        <span className="text-sm text-gray-500">points</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
-                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${Math.min((results.crsScorePrediction / 600) * 100, 100)}%` }}></div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Current cut-off trends hover around 480-520 for general draws.</p>
-                 </>
-             )}
-          </div>
-
-          {/* Assumptions Section (New) */}
-          {results.assumptions && results.assumptions.length > 0 && (
-             <div className="bg-yellow-50 rounded-xl shadow-sm border border-yellow-100 p-6">
-                <h3 className="text-sm font-bold text-yellow-800 mb-2 flex items-center gap-2">
-                   <Info size={16}/> Analysis Assumptions
+             {/* 1. Visa Approval Probability */}
+             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <TrendingUp className="text-red-600" size={20}/>
+                  Visa Approval
                 </h3>
-                <ul className="space-y-1">
-                   {results.assumptions.map((note, idx) => (
-                      <li key={idx} className="text-xs text-yellow-700 flex items-start gap-2">
-                         <span className="mt-1.5 w-1 h-1 rounded-full bg-yellow-500 shrink-0"></span>
-                         {note}
-                      </li>
-                   ))}
-                </ul>
-             </div>
-          )}
+                <div className="h-40 w-full relative flex justify-center items-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={scoreData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        fill="#8884d8"
+                        paddingAngle={5}
+                        dataKey="value"
+                        startAngle={90}
+                        endAngle={-270}
+                      >
+                        {scoreData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-2xl font-bold text-gray-900">{results.overallSuccessProbability}%</span>
+                    <span className="text-[10px] text-gray-500">Likelihood</span>
+                  </div>
+                </div>
+                <p className="text-xs text-center text-gray-600 mt-2">
+                  Based on current Canadian immigration trends.
+                </p>
+              </div>
 
-          {/* Call to Action */}
-          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border border-red-200">
-            <h3 className="font-bold text-red-900 mb-2">Need Professional Help?</h3>
-            <p className="text-sm text-red-800 mb-4">
-              Your profile has potential, but there are complexities. Book a consultation with a Regulated Canadian Immigration Consultant (RCIC).
-            </p>
-            <button 
-              onClick={onBookConsultation}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition shadow-sm"
-            >
-              Book Consultation ($50)
-            </button>
-          </div>
+             {/* 2. Need Professional Help? (CTA) */}
+             <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border border-red-200 flex flex-col justify-center">
+                <h3 className="font-bold text-red-900 mb-2 text-lg">Need Professional Help?</h3>
+                <p className="text-sm text-red-800 mb-6 flex-grow">
+                  Your profile has potential, but there are complexities. A Regulated Consultant (RCIC) can maximize your chances.
+                </p>
+                <button 
+                  onClick={onBookConsultation}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg transition shadow-sm"
+                >
+                  Book Consultation ($50)
+                </button>
+              </div>
+
+              {/* 3. CRS Score Projection */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <List size={18} className="text-blue-600"/>
+                    CRS Projection
+                </h3>
+                <p className="text-xs text-gray-500 mb-4">Permanent Residency Eligibility</p>
+                
+                {results.futureCrsPredictions ? (
+                    <div className="flex flex-col gap-4 flex-grow">
+                        {/* Part A: As of Now */}
+                        <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-center">
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">CRS Score as of Now</span>
+                            <span className="text-3xl font-extrabold text-gray-800">{results.futureCrsPredictions.current}</span>
+                            <span className="text-xs text-gray-400 block mt-1">Current Profile</span>
+                        </div>
+
+                        {/* Part B: Future (1-3 Years) */}
+                        <div>
+                            <span className="text-xs font-bold text-blue-600 uppercase tracking-wide block mb-2">In 1-3 Years (Projected)</span>
+                            
+                            <div className="space-y-2">
+                                {/* Option 1 */}
+                                <div className="flex justify-between items-center text-xs group">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-[10px]">1</span>
+                                        <span className="text-gray-600">1 Year Study</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                         <div className="w-16 bg-gray-100 rounded-full h-1.5">
+                                            <div className="bg-blue-300 h-1.5 rounded-full" style={{ width: getBarWidth(results.futureCrsPredictions.oneYearStudy) }}></div>
+                                         </div>
+                                         <span className="font-bold text-gray-700 w-8 text-right">{results.futureCrsPredictions.oneYearStudy}</span>
+                                    </div>
+                                </div>
+
+                                {/* Option 2 */}
+                                <div className="flex justify-between items-center text-xs">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-[10px]">2</span>
+                                        <span className="text-gray-600">2 Years Study <span className="text-[9px] text-green-600 font-bold ml-1">(High Chances)</span></span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                         <div className="w-16 bg-gray-100 rounded-full h-1.5">
+                                            <div className="bg-indigo-400 h-1.5 rounded-full" style={{ width: getBarWidth(results.futureCrsPredictions.twoYearStudy) }}></div>
+                                         </div>
+                                         <span className="font-bold text-gray-700 w-8 text-right">{results.futureCrsPredictions.twoYearStudy}</span>
+                                    </div>
+                                </div>
+
+                                {/* Option 3 */}
+                                <div className="flex justify-between items-center text-xs">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-[10px]">3</span>
+                                        <span className="text-gray-600">2y Study + 1y Work <span className="text-[9px] text-green-700 font-extrabold ml-1">(Higher Chances)</span></span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                         <div className="w-16 bg-gray-100 rounded-full h-1.5">
+                                            <div className="bg-green-500 h-1.5 rounded-full" style={{ width: getBarWidth(results.futureCrsPredictions.twoYearStudyPlusWork) }}></div>
+                                         </div>
+                                         <span className="font-bold text-green-700 w-8 text-right">{results.futureCrsPredictions.twoYearStudyPlusWork}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    /* Worker View */
+                    <div className="flex flex-col justify-center flex-grow">
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-4xl font-bold text-blue-600">{results.crsScorePrediction}</span>
+                            <span className="text-sm text-gray-500">points</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+                            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${Math.min((results.crsScorePrediction / 600) * 100, 100)}%` }}></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">Target range: 480-520+</p>
+                    </div>
+                )}
+              </div>
         </div>
 
-        {/* Middle & Right Column: Content */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Strategic Advice */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Sparkles className="text-amber-500" size={20} /> AI Strategic Advice
-            </h3>
-            <div className="space-y-3">
-              {Array.isArray(results.strategicAdvice) && results.strategicAdvice.length > 0 ? (
-                  <ul className="space-y-3">
-                      {results.strategicAdvice.map((advice, idx) => (
-                          <li key={idx} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors">
-                              <span className="mt-1 text-blue-500 shrink-0">
-                                  <ArrowRightCircle size={16} />
-                              </span>
-                              <span className="text-sm text-gray-800 leading-relaxed font-medium">{advice}</span>
-                          </li>
-                      ))}
-                  </ul>
-              ) : (
-                  <p className="text-sm text-gray-600">{results.strategicAdvice}</p>
-              )}
-            </div>
-          </div>
+        {/* 4. Analysis Assumptions */}
+        {results.assumptions && results.assumptions.length > 0 && (
+             <div className="bg-yellow-50 rounded-xl shadow-sm border border-yellow-100 p-6">
+                <h3 className="text-sm font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                   <Info size={16}/> Analysis Assumptions
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {results.assumptions.map((note, idx) => (
+                        <div key={idx} className="text-xs text-yellow-700 flex items-start gap-2 bg-yellow-100/50 p-2 rounded">
+                            <span className="mt-1 w-1.5 h-1.5 rounded-full bg-yellow-500 shrink-0"></span>
+                            {note}
+                        </div>
+                    ))}
+                </div>
+             </div>
+        )}
 
-          {/* Top 3 Recommended Pathways */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        {/* 5. Recommended Study Programs */}
+        {results.studyRecommendations && results.studyRecommendations.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                     <GraduationCap className="text-blue-600" size={20} /> Recommended Study Programs
+                  </h3>
+                  <button 
+                    onClick={() => setShowStudyModal(true)}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 transition shadow-sm"
+                  >
+                    <Calendar size={16} />
+                    Book Free Study Advice
+                  </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {results.studyRecommendations.map((study, idx) => (
+                   <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition">
+                      <h4 className="font-bold text-gray-900">{study.programName}</h4>
+                      <p className="text-sm text-blue-600 font-medium mb-2">{study.institution}</p>
+                      <div className="flex justify-between text-xs text-gray-500 mt-2">
+                          <span>{study.location}</span>
+                          <span>{study.tuition}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 border-t border-gray-200 pt-2 italic">"{study.matchReason}"</p>
+                   </div>
+                ))}
+              </div>
+            </div>
+        )}
+
+        {/* 6. Top 3 Recommended Pathways */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Top 3 Recommended Pathways</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {results.recommendedPathways.slice(0, 3).map((path, idx) => (
@@ -243,10 +270,33 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookCon
                 </div>
               ))}
             </div>
-          </div>
+        </div>
 
-          {/* Strengths & Risks Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 7. AI Strategic Advice */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <Sparkles className="text-amber-500" size={20} /> AI Strategic Advice
+            </h3>
+            <div className="space-y-3">
+              {Array.isArray(results.strategicAdvice) && results.strategicAdvice.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-3">
+                      {results.strategicAdvice.map((advice, idx) => (
+                          <div key={idx} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors">
+                              <span className="mt-1 text-blue-500 shrink-0">
+                                  <ArrowRightCircle size={16} />
+                              </span>
+                              <span className="text-sm text-gray-800 leading-relaxed font-medium">{advice}</span>
+                          </div>
+                      ))}
+                  </div>
+              ) : (
+                  <p className="text-sm text-gray-600">{results.strategicAdvice}</p>
+              )}
+            </div>
+        </div>
+
+        {/* 8. Key Strengths & Risk Factors */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Check className="text-green-500" size={18} /> Key Strengths
@@ -273,10 +323,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookCon
                 ))}
               </ul>
             </div>
-          </div>
+        </div>
 
-          {/* Detailed Pathway Assessment Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* 9. Detailed Pathway Eligibility Assessment */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100 bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <List size={20} className="text-gray-600"/> Detailed Pathway Eligibility Assessment
@@ -342,27 +392,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ results, onBookCon
                     </tbody>
                 </table>
             </div>
-          </div>
-
-          {/* Study Recommendations (Conditional) */}
-          {results.studyRecommendations && results.studyRecommendations.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                 <GraduationCap className="text-blue-600" size={20} /> Recommended Study Programs
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {results.studyRecommendations.map((study, idx) => (
-                   <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <h4 className="font-bold text-gray-900">{study.programName}</h4>
-                      <p className="text-sm text-blue-600 font-medium mb-2">{study.institution}</p>
-                      <p className="text-xs text-gray-500">{study.matchReason}</p>
-                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
         </div>
+
       </div>
     </div>
   );

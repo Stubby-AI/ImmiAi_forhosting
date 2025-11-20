@@ -102,11 +102,11 @@ export const analyzeProfile = async (
       CONTEXT: USER IS A PROSPECTIVE INTERNATIONAL STUDENT.
       1. Analyze Visa Approval Probability based on financial, study gap, and intent.
       2. SIMULATE "ApplyBoard" API Course Matching (3-4 DLIs).
-      3. CALCULATE FUTURE CRS SCENARIOS (Permanent Residency Eligibility):
-         - **Current**: Calculate CRS based on profile NOW. 
-         - **Option 1 (1 Year Study)**: Add points for a 1-year Canadian credential.
-         - **Option 2 (2 Year Study)**: Add points for a 2-year Canadian credential (higher chance).
-         - **Option 3 (2 Year Study + 1 Year Work)**: Add points for 2-year Canadian credential + 1 year Canadian work experience (CEC eligibility).
+      3. CALCULATE FUTURE CRS SCENARIOS (Permanent Residency Eligibility 1-3 Years Forecast):
+         - **Current**: Calculate CRS based on profile NOW (often low for students).
+         - **Option 1 (1 Year Study)**: Add points for a 1-year Canadian credential (approx +15 pts) to the current score.
+         - **Option 2 (2 Year Study)**: Add points for a 2-year Canadian credential (approx +30 pts). Label this logic as "High Chances".
+         - **Option 3 (2 Year Study + 1 Year Work)**: Add points for 2-year Canadian credential (+30) AND 1 year Canadian work experience (CEC class, approx +40 to +80 pts depending on skill transferability). Label this as "Higher Chances".
       `;
   } else {
       specificInstructions = `
@@ -144,7 +144,8 @@ export const analyzeProfile = async (
     - Work: ${profile.workExperienceYears} years
     - English Language: ${englishInfo}
     - French Language: ${frenchInfo}
-    - Savings: ${profile.savings}
+    - Savings (Budget): ${profile.savings}
+    - Settlement Funds: ${profile.settlementFunds || 'N/A'}
   `;
 
   try {

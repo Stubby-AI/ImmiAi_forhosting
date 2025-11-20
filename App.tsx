@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { AssessmentForm } from './components/AssessmentForm';
@@ -17,6 +18,9 @@ const App: React.FC = () => {
   const [assessmentResult, setAssessmentResult] = useState<AIAnalysisResult | null>(null);
   const [showModal, setShowModal] = useState(false);
 
+  // We need to store the user's profile data to pass it to the dashboard
+  const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
+
   const handleStart = (type: UserType) => {
     setUserType(type);
     if (type === UserType.Partner) {
@@ -31,6 +35,7 @@ const App: React.FC = () => {
   const handleAssessmentSubmit = async (data: UserProfile) => {
     if (!userType) return;
     setIsLoading(true);
+    setCurrentProfile(data); // Store the profile data
     try {
       const result = await analyzeProfile(data, userType);
       setAssessmentResult(result);
@@ -46,6 +51,7 @@ const App: React.FC = () => {
   const handleLogout = () => {
     setUserType(null);
     setAssessmentResult(null);
+    setCurrentProfile(null);
     setView('country-selection');
   };
 
@@ -209,8 +215,12 @@ const App: React.FC = () => {
           <AssessmentForm userType={userType} onSubmit={handleAssessmentSubmit} isLoading={isLoading} />
         )}
 
-        {view === 'user-dashboard' && assessmentResult && (
-          <UserDashboard results={assessmentResult} onBookConsultation={toggleModal} />
+        {view === 'user-dashboard' && assessmentResult && currentProfile && (
+          <UserDashboard 
+            results={assessmentResult} 
+            onBookConsultation={toggleModal} 
+            userProfile={currentProfile} 
+          />
         )}
 
         {view === 'partner-dashboard' && (

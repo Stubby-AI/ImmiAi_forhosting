@@ -112,6 +112,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({ userType, onSubm
     targetProvince: 'Ontario',
     preferredProvinces: [],
     savings: 15000,
+    settlementFunds: 10000, // Default
     savingsExempt: false,
     
     hasJobOffer: false,
@@ -460,10 +461,17 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({ userType, onSubm
                         <FormRow label="Intended Program" subLabel="What field do you want to study?">
                              <input type="text" name="intendedStudyField" value={formData.intendedStudyField} onChange={handleChange} className="input-field" placeholder="e.g. Project Management, Nursing" />
                         </FormRow>
-                        <FormRow label="First Year Budget" subLabel="Total funds available (CAD).">
+                        <FormRow label="First Year Budget" subLabel="Total funds available for tuition & living (CAD).">
                             <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                                 <input type="number" name="savings" value={formData.savings} onChange={handleChange} className="input-field pl-10" />
+                            </div>
+                        </FormRow>
+                        {/* NEW FIELD */}
+                        <FormRow label="Settlement Funds" subLabel="Available funds strictly for settlement (GIC/Cash) (CAD).">
+                            <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <input type="number" name="settlementFunds" value={formData.settlementFunds || 0} onChange={handleChange} className="input-field pl-10" />
                             </div>
                         </FormRow>
                         <FormRow label="Preferred Provinces">

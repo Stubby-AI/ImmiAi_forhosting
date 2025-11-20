@@ -68,7 +68,8 @@ export interface UserProfile {
   // Additional Factors
   certificateOfQualification: boolean; // Trade certificate
   targetProvince: string;
-  savings: number; // CAD
+  savings: number; // CAD (First Year Budget)
+  settlementFunds?: number; // New: Fund available for settlement
   savingsExempt?: boolean; // New: If they have job offer/valid status
   
   // Legal & History
