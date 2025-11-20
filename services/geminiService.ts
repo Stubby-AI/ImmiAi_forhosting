@@ -3,7 +3,16 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, AIAnalysisResult, UserType } from "../types";
 
 const getAIClient = () => {
-  const apiKey = process.env.API_KEY;
+  // Safety check for process.env availability
+  let apiKey = '';
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      apiKey = process.env.API_KEY;
+    }
+  } catch (e) {
+    console.warn("Could not access process.env");
+  }
+  
   if (!apiKey) {
     console.error("API Key is missing");
     throw new Error("API Key is missing");

@@ -1,42 +1,75 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { AssessmentForm } from './components/AssessmentForm';
 import { UserDashboard } from './components/UserDashboard';
 import { PartnerDashboard } from './components/PartnerDashboard';
 import { SuperAdminDashboard } from './components/SuperAdminDashboard';
+import { LandingPage } from './components/LandingPage';
+import { PartnerSignupForm } from './components/PartnerSignupForm';
+import { JobsFinder } from './components/JobsFinder';
+import { CanadaLandingPage } from './components/CanadaLandingPage';
+import { AppointmentsView, AvailabilityView, SubscriptionView, CommissionView } from './components/ProfileFeatures';
 import { analyzeProfile } from './services/geminiService';
 import { UserType, UserProfile, AIAnalysisResult } from './types';
-import { Briefcase, GraduationCap, Building2, CheckCircle, Globe, Plane, ShieldCheck, Scale, UserCheck, BookOpen } from 'lucide-react';
 
-type ViewState = 'country-selection' | 'landing' | 'assessment' | 'user-dashboard' | 'partner-dashboard' | 'super-admin-dashboard';
+type ViewState = 
+  | 'home' 
+  | 'canada-landing'
+  | 'country-selection' 
+  | 'applicant-login'
+  | 'assessment' 
+  | 'user-dashboard' 
+  | 'partner-dashboard' 
+  | 'super-admin-dashboard' 
+  | 'partner-signup' 
+  | 'jobs-finder'
+  | 'appointments'
+  | 'availability'
+  | 'subscription'
+  | 'commission';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<ViewState>('country-selection');
+  const [view, setView] = useState<ViewState>('home');
   const [userType, setUserType] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState<AIAnalysisResult | null>(null);
-  
-  // We need to store the user's profile data to pass it to the dashboard
   const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
+  
+  // Tracking for Partner Referral
+  const [referralPartnerId, setReferralPartnerId] = useState<string | null>(null);
 
-  const handleStart = (type: UserType) => {
-    setUserType(type);
-    if (type === UserType.Partner) {
-      setView('partner-dashboard');
-    } else if (type === UserType.SuperAdmin) {
-      setView('super-admin-dashboard');
-    } else {
-      setView('assessment');
+  // Check URL for partnerId on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pId = params.get('partnerId');
+    if (pId) {
+      setReferralPartnerId(pId);
+      console.log("Partner Referral Detected:", pId);
+      // Optionally auto-direct to landing page if deep linked
+      setView('canada-landing');
     }
+  }, []);
+
+  const handleStartAssessment = (type: UserType) => {
+    setUserType(type);
+    setView('assessment');
   };
 
   const handleAssessmentSubmit = async (data: UserProfile) => {
     if (!userType) return;
     setIsLoading(true);
-    setCurrentProfile(data); // Store the profile data
+
+    // Attach referral ID if it exists
+    const profileWithReferral = {
+      ...data,
+      partnerId: referralPartnerId || undefined
+    };
+
+    setCurrentProfile(profileWithReferral);
+    
     try {
-      const result = await analyzeProfile(data, userType);
+      const result = await analyzeProfile(profileWithReferral, userType);
       setAssessmentResult(result);
       setView('user-dashboard');
     } catch (error) {
@@ -51,182 +84,187 @@ const App: React.FC = () => {
     setUserType(null);
     setAssessmentResult(null);
     setCurrentProfile(null);
-    setView('country-selection');
+    setView('home');
   };
 
-  // Special handler for the hidden admin button in navbar
-  const handleAdminLoginRequest = (v: string) => {
-    if (v === 'super-admin-login') {
-       handleStart(UserType.SuperAdmin);
-    } else if (v === 'partner-login') {
-       handleStart(UserType.Partner);
+  const handleNavigation = (target: string) => {
+    if (target === 'home') {
+      setView('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (target === 'super-admin-login') {
+       setUserType(UserType.SuperAdmin);
+       setView('super-admin-dashboard');
+    } else if (target === 'partner-login') {
+       setUserType(UserType.Partner);
+       setView('partner-dashboard');
+    } else if (target === 'partner-signup') {
+       setView('partner-signup');
+    } else if (target === 'applicant-login') {
+      // Use the Canada landing page as the main portal entry for now
+      setView('canada-landing');
+    } else if (target === 'country-selection') {
+       if (view === 'home') {
+        const element = document.getElementById('destinations');
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        setView('home');
+        setTimeout(() => {
+          const element = document.getElementById('destinations');
+          if (element) element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
     } else {
-       setView(v as ViewState);
+       setView(target as ViewState);
     }
-  }
+  };
 
-  const countries = [
-    { name: 'Canada', flag: '🇨🇦', description: 'Express Entry, PNP, & Study Pathways', active: true },
-    { name: 'Australia', flag: '🇦🇺', description: 'SkillSelect & Subclass Visas', active: false },
-    { name: 'UK', flag: '🇬🇧', description: 'Skilled Worker & Graduate Routes', active: false },
-    { name: 'Finland', flag: '🇫🇮', description: 'Specialist & Startup Permits', active: false },
-    { name: 'USA', flag: '🇺🇸', description: 'H-1B, Green Cards & O-1', active: false },
-  ];
+  const handleCountrySelect = (countryName: string) => {
+    if (countryName === 'Canada') {
+       setView('canada-landing');
+    } else {
+      alert(`${countryName} module is coming soon!`);
+    }
+  };
+
+  // Footer Component
+  const Footer = () => (
+    <footer className="bg-gray-900 text-white py-12 mt-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <h3 className="text-xl font-bold mb-4">ImmiPlanner<span className="text-red-500">.AI</span></h3>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            The world's first AI-driven immigration lifecycle platform. Simplifying pathways for students, workers, and families.
+          </p>
+        </div>
+        <div>
+          <h4 className="font-bold mb-4">Platform</h4>
+          <ul className="space-y-2 text-sm text-gray-400">
+            <li><button onClick={() => handleNavigation('home')} className="hover:text-white">Home</button></li>
+            <li><button onClick={() => handleNavigation('partner-signup')} className="hover:text-white">Become a Partner</button></li>
+            <li><button className="hover:text-white">Find a Consultant</button></li>
+            <li><button className="hover:text-white">Success Stories</button></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-bold mb-4">Resources</h4>
+          <ul className="space-y-2 text-sm text-gray-400">
+            <li><button className="hover:text-white">Blog</button></li>
+            <li><button className="hover:text-white">Visa Guides</button></li>
+            <li><button className="hover:text-white">CRS Calculator</button></li>
+            <li><button className="hover:text-white">Admin Portal</button></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-bold mb-4">Contact</h4>
+          <p className="text-sm text-gray-400 mb-2">support@immiplanner.ai</p>
+          <p className="text-sm text-gray-400">+1 (647) 000-0000</p>
+          <div className="mt-4 flex gap-4">
+             <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">X</div>
+             <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">In</div>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-gray-800 mt-12 pt-8 text-center text-xs text-gray-500">
+        © 2025 ImmiPlanner AI Inc. All rights reserved.
+      </div>
+    </footer>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <Navbar userType={userType} onLogout={handleLogout} onSwitchView={handleAdminLoginRequest} />
+    <div className="min-h-screen bg-gray-50 flex flex-col pt-16 relative">
+      <Navbar 
+        userType={userType} 
+        onLogout={handleLogout} 
+        onSwitchView={handleNavigation} 
+        currentView={view}
+      />
 
-      <div className="px-4 pb-12">
-        {view === 'country-selection' && (
-          <div className="max-w-6xl mx-auto text-center animate-fade-in mt-10">
-             <div className="flex justify-center mb-6">
-                <div className="p-4 bg-red-50 rounded-full">
-                   <Globe className="w-12 h-12 text-red-600" />
-                </div>
-             </div>
-             <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6">
-              Choose Your <span className="text-red-600">Destination</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-              Select a country to explore immigration pathways, study opportunities, and settlement guides.
-            </p>
+      {/* Partner Referral Banner (if active) */}
+      {referralPartnerId && !userType && (
+        <div className="bg-blue-600 text-white text-center py-2 px-4 text-sm font-medium">
+          You have been invited by Partner ID: <span className="font-bold underline">{referralPartnerId}</span>. 
+          Your assessment will be shared with your consultant.
+        </div>
+      )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {countries.map((country) => (
-                <div
-                  key={country.name}
-                  onClick={() => {
-                    if (country.active) {
-                      setView('landing');
-                    } else {
-                      alert(`${country.name} module is coming soon!`);
-                    }
-                  }}
-                  className={`bg-white p-8 rounded-2xl shadow-sm border border-gray-200 transition cursor-pointer group relative overflow-hidden
-                    ${country.active ? 'hover:shadow-lg hover:border-red-300 transform hover:-translate-y-1' : 'opacity-75 hover:bg-gray-50'}
-                  `}
-                >
-                  <div className="text-6xl mb-6">{country.flag}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Migrate & Settle down in {country.name}</h3>
-                  <p className="text-gray-500 text-sm">{country.description}</p>
-                  {country.active && (
-                     <div className="absolute top-4 right-4">
-                        <span className="flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                        </span>
-                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {view === 'landing' && (
-          <div className="max-w-7xl mx-auto text-center animate-fade-in mt-10">
-            <button 
-              onClick={() => setView('country-selection')} 
-              className="mb-8 text-gray-500 hover:text-red-600 flex items-center justify-center gap-2 mx-auto transition font-medium"
-            >
-                <Globe size={16} /> Back to Country Selection
-            </button>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6">
-              Your Dream to <span className="text-red-600">Canada</span> Starts Here.
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              The comprehensive lifecycle platform for students, skilled workers, and immigration consultants. 
-              Get AI-powered assessment, clear pathways, and expert guidance.
-            </p>
-
-            {/* Consultant Buttons - Visual Only on Landing, Functional in Dashboard */}
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              <button className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-5 py-3 rounded-full font-medium hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition shadow-sm cursor-default">
-                <UserCheck size={18} />
-                Consult an IRCC Consultant
-              </button>
-              <button className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-5 py-3 rounded-full font-medium hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition shadow-sm cursor-default">
-                <Scale size={18} />
-                Consult an Immigration Lawyer
-              </button>
-              <button className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-5 py-3 rounded-full font-medium hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition shadow-sm cursor-default">
-                <BookOpen size={18} />
-                Consult an Education Consultant
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-              {/* Student Card */}
-              <div 
-                onClick={() => handleStart(UserType.Student)}
-                className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-red-300 transition cursor-pointer group"
-              >
-                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-100">
-                  <GraduationCap className="w-8 h-8 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">I am a Student</h3>
-                <p className="text-gray-500">Find study programs, visa probability, and PGWP pathways.</p>
-              </div>
-
-              {/* Worker Card */}
-              <div 
-                onClick={() => handleStart(UserType.Worker)}
-                className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-red-300 transition cursor-pointer group"
-              >
-                <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-green-100">
-                  <Briefcase className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">I am a Skilled Worker</h3>
-                <p className="text-gray-500">Check Express Entry eligibility, CRS score, and PNP options.</p>
-              </div>
-
-              {/* Direct PR Card */}
-              <div 
-                onClick={() => handleStart(UserType.Worker)}
-                className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-red-300 transition cursor-pointer group"
-              >
-                <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-teal-100">
-                  <Plane className="w-8 h-8 text-teal-600" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Direct PR to Canada</h3>
-                <p className="text-gray-500">Explore my options for Permanent Residency.</p>
-              </div>
-
-              {/* Partner Card */}
-              <div 
-                onClick={() => handleStart(UserType.Partner)}
-                className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-red-300 transition cursor-pointer group"
-              >
-                <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-purple-100">
-                  <Building2 className="w-8 h-8 text-purple-600" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Immigration Partner</h3>
-                <p className="text-gray-500">Manage leads, automate assessments, and grow your business.</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {view === 'assessment' && userType && (
-          <AssessmentForm userType={userType} onSubmit={handleAssessmentSubmit} isLoading={isLoading} />
-        )}
-
-        {view === 'user-dashboard' && assessmentResult && currentProfile && (
-          <UserDashboard 
-            results={assessmentResult} 
-            userProfile={currentProfile} 
+      <main className="flex-grow">
+        {view === 'home' && (
+          <LandingPage 
+            onStartAssessment={handleStartAssessment}
+            onSelectCountry={handleCountrySelect}
           />
         )}
 
+        {view === 'canada-landing' && (
+          <CanadaLandingPage 
+            onStartAssessment={handleStartAssessment}
+            onSwitchView={handleNavigation}
+          />
+        )}
+
+        {view === 'partner-signup' && (
+          <PartnerSignupForm 
+            onSuccess={() => setView('home')} 
+            onLogin={() => {
+              setUserType(UserType.Partner);
+              setView('partner-dashboard');
+            }}
+          />
+        )}
+
+        {view === 'assessment' && userType && (
+          <div className="px-4 py-8">
+             <AssessmentForm userType={userType} onSubmit={handleAssessmentSubmit} isLoading={isLoading} />
+          </div>
+        )}
+
+        {view === 'user-dashboard' && assessmentResult && currentProfile && (
+          <div className="px-4 py-8">
+            <UserDashboard 
+              results={assessmentResult} 
+              userProfile={currentProfile} 
+              onSwitchView={handleNavigation}
+            />
+          </div>
+        )}
+        
+        {view === 'jobs-finder' && (
+          <JobsFinder />
+        )}
+
         {view === 'partner-dashboard' && (
-          <PartnerDashboard />
+          <div className="px-4 py-8">
+             <PartnerDashboard />
+          </div>
         )}
 
         {view === 'super-admin-dashboard' && (
-          <SuperAdminDashboard />
+          <div className="px-4 py-8">
+            <SuperAdminDashboard />
+          </div>
         )}
-      </div>
+
+        {/* --- NEW PROFILE VIEWS --- */}
+
+        {view === 'appointments' && userType && (
+           <AppointmentsView userType={userType} />
+        )}
+
+        {view === 'availability' && userType && (
+           <AvailabilityView userType={userType} />
+        )}
+
+        {view === 'subscription' && userType && (
+           <SubscriptionView userType={userType} />
+        )}
+
+        {view === 'commission' && userType && (
+           <CommissionView userType={userType} />
+        )}
+
+      </main>
+      
+      {(view === 'home' || view === 'canada-landing') && <Footer />}
     </div>
   );
 };

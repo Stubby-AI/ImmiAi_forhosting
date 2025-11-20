@@ -27,6 +27,9 @@ export interface UserProfile {
   name: string;
   age: number;
   
+  // Tracking
+  partnerId?: string; // ID of the partner who referred this user
+
   // Personal & Family
   countryOfResidence: string;
   passportValid: boolean;
@@ -129,6 +132,7 @@ export interface Lead {
   score: number;
   type: UserType;
   lastActive: string;
+  partnerId?: string; // If referred by a partner
 }
 
 export interface PartnerOrganization {
@@ -140,4 +144,26 @@ export interface PartnerOrganization {
   status: 'Active' | 'Pending' | 'Suspended';
   clientCount: number;
   revenueGenerated: number;
+}
+
+// --- NEW INTERFACES FOR PROFILE FEATURES ---
+
+export interface Appointment {
+  id: string;
+  date: string;
+  time: string;
+  withPerson: string;
+  type: 'Consultation' | 'Advising' | 'Follow-up';
+  status: 'Confirmed' | 'Completed' | 'Cancelled';
+  link?: string;
+}
+
+export interface CommissionRecord {
+  id: string;
+  clientName: string;
+  applicationType: string;
+  status: 'Application Submitted' | 'Visa Approved' | 'Landed' | 'Completed';
+  amount: number;
+  payoutStatus: 'Pending' | 'Eligible' | 'Paid';
+  dateUpdated: string;
 }

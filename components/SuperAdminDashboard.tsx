@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PartnerOrganization, UserType, Lead } from '../types';
 import { 
@@ -16,7 +17,7 @@ const MOCK_PARTNERS: PartnerOrganization[] = [
 
 const MOCK_DIRECT_USERS: Lead[] = [
   { id: '101', name: 'Emily Chen', email: 'emily.c@gmail.com', status: 'New', score: 78, type: UserType.Student, lastActive: '1 hr ago' },
-  { id: '102', name: 'David Miller', email: 'david.m@outlook.com', status: 'In Progress', score: 88, type: UserType.Worker, lastActive: '3 days ago' },
+  { id: '102', name: 'David Miller', email: 'david.m@outlook.com', status: 'In Progress', score: 88, type: UserType.Worker, lastActive: '3 days ago', partnerId: '1' },
   { id: '103', name: 'Sarah O-Connor', email: 'sarah.o@gmail.com', status: 'New', score: 65, type: UserType.Worker, lastActive: '1 week ago' },
 ];
 
@@ -32,6 +33,12 @@ const REVENUE_DATA = [
 
 export const SuperAdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'partners' | 'direct'>('overview');
+
+  const getPartnerName = (id?: string) => {
+    if (!id) return 'Direct / None';
+    const p = MOCK_PARTNERS.find(p => p.id === id);
+    return p ? p.agencyName : 'Unknown Partner';
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -60,7 +67,7 @@ export const SuperAdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('direct')}
             className={`px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === 'direct' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
-            Direct Applicants
+            Applications
           </button>
         </div>
       </div>
@@ -96,7 +103,7 @@ export const SuperAdminDashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                <div className="flex justify-between items-start mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">Direct Applicants</p>
+                  <p className="text-sm text-gray-500">Total Applicants</p>
                   <h3 className="text-2xl font-bold text-gray-900">1,892</h3>
                 </div>
                 <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
@@ -209,7 +216,7 @@ export const SuperAdminDashboard: React.FC = () => {
       {activeTab === 'direct' && (
         <div className="animate-fade-in bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="font-bold text-gray-900">Direct Applicants</h3>
+            <h3 className="font-bold text-gray-900">Applications & Leads</h3>
             <div className="flex gap-2">
                <button className="text-gray-400 hover:text-gray-600 p-2 bg-gray-50 rounded-lg"><Filter size={18}/></button>
             </div>
@@ -220,8 +227,8 @@ export const SuperAdminDashboard: React.FC = () => {
                 <tr>
                   <th className="px-6 py-3">User</th>
                   <th className="px-6 py-3">Type</th>
+                  <th className="px-6 py-3">Referred By</th>
                   <th className="px-6 py-3">AI Score</th>
-                  <th className="px-6 py-3">Last Active</th>
                   <th className="px-6 py-3">Status</th>
                   <th className="px-6 py-3">Action</th>
                 </tr>
@@ -241,11 +248,18 @@ export const SuperAdminDashboard: React.FC = () => {
                         </span>
                     </td>
                     <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                           <span className={`w-2 h-2 rounded-full ${user.partnerId ? 'bg-purple-500' : 'bg-gray-300'}`}></span>
+                           <span className={`text-xs font-medium ${user.partnerId ? 'text-purple-700' : 'text-gray-500'}`}>
+                             {getPartnerName(user.partnerId)}
+                           </span>
+                        </div>
+                    </td>
+                    <td className="px-6 py-4">
                          <span className={`font-bold ${user.score > 80 ? 'text-green-600' : user.score > 60 ? 'text-yellow-600' : 'text-red-600'}`}>
                             {user.score}
                         </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-500">{user.lastActive}</td>
                     <td className="px-6 py-4">
                         <span className="bg-blue-50 text-blue-600 text-xs px-2 py-1 rounded-full">{user.status}</span>
                     </td>
