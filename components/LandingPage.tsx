@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Globe, Star, CheckCircle2, ArrowRight, Scale, UserCheck, Briefcase, GraduationCap } from 'lucide-react';
+import { Globe, Star, CheckCircle2, ArrowRight, Scale, UserCheck, Briefcase, GraduationCap, User } from 'lucide-react';
 import { UserType } from '../types';
 
 interface LandingPageProps {
@@ -34,6 +35,16 @@ const PARTNERS = [
 export const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onSelectCountry }) => {
   const [activeTab, setActiveTab] = useState<'Consultants' | 'Lawyers'>('Consultants');
 
+  const scrollToExperts = (type: 'Consultants' | 'Lawyers' | 'Us') => {
+      if (type === 'Us') {
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      } else {
+          setActiveTab(type);
+          const element = document.getElementById('expert-directory');
+          if (element) element.scrollIntoView({ behavior: 'smooth' });
+      }
+  };
+
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
@@ -49,20 +60,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onS
             Navigate complex immigration rules with AI. Connect with top-rated consultants. 
             Find your perfect study or work pathway in minutes.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button 
-              onClick={() => onStartAssessment(UserType.Student)}
-              className="px-8 py-4 bg-red-600 text-white rounded-xl font-bold text-lg shadow-xl shadow-red-200 hover:bg-red-700 transition hover:-translate-y-1 flex items-center justify-center gap-2"
-            >
-              <GraduationCap /> Start Student Assessment
-            </button>
-            <button 
-               onClick={() => onStartAssessment(UserType.Worker)}
-               className="px-8 py-4 bg-white text-gray-900 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition hover:-translate-y-1 flex items-center justify-center gap-2"
-            >
-              <Briefcase /> Check Work Eligibility
-            </button>
+          
+          <div className="flex flex-col items-center gap-6">
+             {/* Primary Actions */}
+             <div className="flex flex-col sm:flex-row justify-center gap-4 w-full">
+                <button 
+                  onClick={() => onStartAssessment(UserType.Student)}
+                  className="px-8 py-4 bg-red-600 text-white rounded-xl font-bold text-lg shadow-xl shadow-red-200 hover:bg-red-700 transition hover:-translate-y-1 flex items-center justify-center gap-2"
+                >
+                  <GraduationCap /> Start Student Assessment
+                </button>
+                <button 
+                   onClick={() => onStartAssessment(UserType.Worker)}
+                   className="px-8 py-4 bg-white text-gray-900 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition hover:-translate-y-1 flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Briefcase /> Check Work Eligibility
+                </button>
+             </div>
+             
+             {/* Secondary Consult Options */}
+             <div className="flex flex-wrap justify-center gap-3 mt-2">
+                 <button 
+                    onClick={() => scrollToExperts('Consultants')}
+                    className="px-4 py-2 text-sm bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition flex items-center gap-2 font-medium"
+                 >
+                    <User size={16}/> Consult an Immigration Consultant
+                 </button>
+                 <button 
+                    onClick={() => scrollToExperts('Lawyers')}
+                    className="px-4 py-2 text-sm bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition flex items-center gap-2 font-medium"
+                 >
+                    <Scale size={16}/> Consult an Immigration Lawyer
+                 </button>
+                 <button 
+                    onClick={() => scrollToExperts('Us')}
+                    className="px-4 py-2 text-sm bg-gray-900 text-white border border-gray-900 rounded-lg hover:bg-gray-800 transition flex items-center gap-2 font-bold"
+                 >
+                    Consult Us!
+                 </button>
+             </div>
           </div>
+
         </div>
         
         {/* Background decoration */}
@@ -109,7 +147,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartAssessment, onS
       </section>
 
       {/* Expert Directory */}
-      <section className="py-20 bg-gray-50">
+      <section id="expert-directory" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
            <div className="flex flex-col md:flex-row justify-between items-center mb-12">
               <div className="mb-6 md:mb-0">
