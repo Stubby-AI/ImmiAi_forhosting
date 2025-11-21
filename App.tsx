@@ -46,8 +46,10 @@ const App: React.FC = () => {
     if (pId) {
       setReferralPartnerId(pId);
       console.log("Partner Referral Detected:", pId);
-      // Optionally auto-direct to landing page if deep linked
-      setView('canada-landing');
+      // We don't auto-redirect immediately to assessment to allow them to read landing page, 
+      // but we show a banner.
+      // If deep link logic is preferred to go straight to Canada landing:
+      if (view === 'home') setView('canada-landing');
     }
   }, []);
 
@@ -60,7 +62,7 @@ const App: React.FC = () => {
     if (!userType) return;
     setIsLoading(true);
 
-    // Attach referral ID if it exists
+    // Attach referral ID if it exists in session
     const profileWithReferral = {
       ...data,
       partnerId: referralPartnerId || undefined
@@ -100,7 +102,6 @@ const App: React.FC = () => {
     } else if (target === 'partner-signup') {
        setView('partner-signup');
     } else if (target === 'applicant-login') {
-      // Use the Canada landing page as the main portal entry for now
       setView('canada-landing');
     } else if (target === 'country-selection') {
        if (view === 'home') {
@@ -181,7 +182,7 @@ const App: React.FC = () => {
 
       {/* Partner Referral Banner (if active) */}
       {referralPartnerId && !userType && (
-        <div className="bg-blue-600 text-white text-center py-2 px-4 text-sm font-medium">
+        <div className="bg-blue-600 text-white text-center py-2 px-4 text-sm font-medium animate-fade-in">
           You have been invited by Partner ID: <span className="font-bold underline">{referralPartnerId}</span>. 
           Your assessment will be shared with your consultant.
         </div>
@@ -244,7 +245,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* --- NEW PROFILE VIEWS --- */}
+        {/* --- PROFILE FEATURES --- */}
 
         {view === 'appointments' && userType && (
            <AppointmentsView userType={userType} />
